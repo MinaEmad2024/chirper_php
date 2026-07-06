@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Chirp;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate; 
+
 
 class ChirpController extends Controller
 {
@@ -49,23 +51,14 @@ public function index()
     /**
      * Store a newly created resource in storage.
      */
-public function store(Request $request)
+    public function store(Request $request)
 {
     $validated = $request->validate([
         'message' => 'required|string|max:255',
-    ], [
-        'message.required' => 'Please write something to chirp!',
-        'message.max' => 'Chirps must be 255 characters or less.',
     ]);
 
     // Use the authenticated user
     auth()->user()->chirps()->create($validated);
-
-
-    \App\Models\Chirp::create([
-        'message' => $validated['message'],
-        'user_id' => null,
-    ]);
 
     return redirect('/')->with('success', 'Your chirp has been posted!');
 }
@@ -83,21 +76,21 @@ public function store(Request $request)
      */
 public function edit(Chirp $chirp)
 {
-    $this->authorize('update', $chirp);
+    // $this->authorize('update', $chirp);
+    Gate::authorize('update', $chirp);
 
     return view('chirps.edit', compact('chirp'));
 }
 
 public function update(Request $request, Chirp $chirp)
 {
-    $this->authorize('update', $chirp);
+    // $this->authorize('update', $chirp);
+    Gate::authorize('update', $chirp);
 
-    // Validate
     $validated = $request->validate([
         'message' => 'required|string|max:255',
     ]);
 
-    // Update
     $chirp->update($validated);
 
     return redirect('/')->with('success', 'Chirp updated!');
@@ -105,9 +98,13 @@ public function update(Request $request, Chirp $chirp)
 
 public function destroy(Chirp $chirp)
 {
-    $this->authorize('delete', $chirp);
+    // $this->authorize('delete', $chirp);
+    Gate::authorize('delete', $chirp);
+
 
     $chirp->delete();
 
     return redirect('/')->with('success', 'Chirp deleted!');
-}}
+}
+
+}
