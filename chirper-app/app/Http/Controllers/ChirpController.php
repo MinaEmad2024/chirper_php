@@ -58,6 +58,10 @@ public function store(Request $request)
         'message.max' => 'Chirps must be 255 characters or less.',
     ]);
 
+    // Use the authenticated user
+    auth()->user()->chirps()->create($validated);
+
+
     \App\Models\Chirp::create([
         'message' => $validated['message'],
         'user_id' => null,
@@ -79,12 +83,15 @@ public function store(Request $request)
      */
 public function edit(Chirp $chirp)
 {
-    // We'll add authorization in lesson 11
+    $this->authorize('update', $chirp);
+
     return view('chirps.edit', compact('chirp'));
 }
 
 public function update(Request $request, Chirp $chirp)
 {
+    $this->authorize('update', $chirp);
+
     // Validate
     $validated = $request->validate([
         'message' => 'required|string|max:255',
@@ -98,6 +105,8 @@ public function update(Request $request, Chirp $chirp)
 
 public function destroy(Chirp $chirp)
 {
+    $this->authorize('delete', $chirp);
+
     $chirp->delete();
 
     return redirect('/')->with('success', 'Chirp deleted!');
